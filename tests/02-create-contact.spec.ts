@@ -22,6 +22,6 @@ test('creates a Contact linked to an Account', async ({ page }) => {
     accountName,
   });
 
-  await expect(page.getByText(`${firstName} ${lastName}`).first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole('heading', { name: `Contact ${firstName} ${lastName}` })).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole('link', { name: accountName }).first()).toBeVisible({ timeout: 15000 });
 });

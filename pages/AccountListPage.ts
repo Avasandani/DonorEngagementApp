@@ -12,7 +12,8 @@ export class AccountListPage {
     await this.page.getByRole('button', { name: 'New', exact: true }).click();
 
     const dialog = this.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    // Quick-action modals can take a few seconds to render their title.
+    await expect(dialog).toBeVisible({ timeout: 20000 });
 
     const nameField = dialog.locator(
       'input[title*="Account Name" i], ' +

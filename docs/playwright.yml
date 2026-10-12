@@ -1,0 +1,55 @@
+name: Playwright tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # The tests expect a logged-in Salesforce session at this path.
+      # Paste the contents of playwright/.auth/salesforce.json into a repo
+      # secret named SF_STORAGE_STATE (Settings > Secrets and variables > Actions).
+      - name: Restore Salesforce session
+        env:
+          SF_STORAGE_STATE: ${{ secrets.SF_STORAGE_STATE }}
+        run: |
+          if [ -z "$SF_STORAGE_STATE" ]; then
+            echo "::error::Secret SF_STORAGE_STATE is empty. Add it, or the tests will land on the Salesforce login page."
+            exit 1
+          fi
+          mkdir -p playwright/.auth
+          printf '%s' "$SF_STORAGE_STATE" > playwright/.auth/salesforce.json
+
+      - name: Run Playwright tests
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: results.json
+        run: npx playwright test --reporter=list,html,json
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            results.json
+            test-results/
+          retention-days: 14
