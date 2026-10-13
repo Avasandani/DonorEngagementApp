@@ -21,7 +21,8 @@ export class ContactListPage {
 
     // Scope to the form modal: duplicate-rule warnings also render as role="dialog".
     const dialog = this.page.getByRole('dialog').filter({ hasText: 'New Contact' }).first();
-    await expect(dialog).toBeVisible();
+    // Quick-action modals can take a few seconds to render their title.
+    await expect(dialog).toBeVisible({ timeout: 20000 });
 
     await dialog.getByPlaceholder('First Name').fill(contact.firstName);
     await dialog.getByPlaceholder('Last Name').fill(contact.lastName);
